@@ -69,9 +69,11 @@ p 'encrypting the data'
 CryptLib.cryptInit()
 
 CryptLib.cryptAddRandom(nil,CryptLib::CRYPT_RANDOM_SLOWPOLL)
-cryptEnvelope = FFI::MemoryPointer.new :pointer
-CryptLib.cryptCreateEnvelope(cryptEnvelope,CryptLib::CRYPT_UNUSED,:CRYPT_FORMAT_CRYPTLIB)
+pcryptEnvelope = FFI::MemoryPointer.new :int 
+CryptLib.cryptCreateEnvelope(pcryptEnvelope,CryptLib::CRYPT_UNUSED,:CRYPT_FORMAT_CRYPTLIB)
+cryptEnvelope = pcryptEnvelope.get_int(0)
 CryptLib.cryptDestroyEnvelope(cryptEnvelope)
 
+puts cryptEnvelope
 CryptLib.cryptEnd()
 
