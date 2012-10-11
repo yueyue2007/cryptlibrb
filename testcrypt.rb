@@ -1,4 +1,4 @@
-#!/home/xinyue/.rvm/bin/ruby
+#!/usr/bin/env ruby
 require_relative "cryptlib.rb"
 
 puts "now testing the cryptlib library..."
@@ -70,10 +70,50 @@ CryptLib.cryptInit()
 
 CryptLib.cryptAddRandom(nil,CryptLib::CRYPT_RANDOM_SLOWPOLL)
 pcryptEnvelope = FFI::MemoryPointer.new :int 
-CryptLib.cryptCreateEnvelope(pcryptEnvelope,CryptLib::CRYPT_UNUSED,:CRYPT_FORMAT_CRYPTLIB)
+status = CryptLib.cryptCreateEnvelope(pcryptEnvelope,CryptLib::CRYPT_UNUSED,:CRYPT_FORMAT_CRYPTLIB)
+puts "status=#{status}"
+if CryptLib.cryptStatusOK(status)
+	puts "create envelope succeed"
+end
+
+
 cryptEnvelope = pcryptEnvelope.get_int(0)
+text = "hello ruby and ffi, I am succeed!"
+CryptLib.cryptSetAttributeString(cryptEnvelope,:CRYPT_ENVINFO_PASSWORD,"123456",6)
+pbytesCopied = FFI::MemoryPointer.new :int 
+status = CryptLib.cryptPushData(cryptEnvelope,text,text.length(),pbytesCopied)
+puts "bytesCopied = #{pbytesCopied.get_int(0)}"
+status = CryptLib.cryptFlushData(cryptEnvelope)
+penvelopedData = FFI::MemoryPointer.new  :char,300
+p status
+status = CryptLib.cryptPopData(cryptEnvelope,penvelopedData,300,pbytesCopied)
+p status
+envelopedData = penvelopedData.get_bytes(0,300)
+puts "bytesCopied = #{pbytesCopied.get_int(0)}"
+puts envelopedData
 CryptLib.cryptDestroyEnvelope(cryptEnvelope)
 
-puts cryptEnvelope
+
+#decode string
+pcryptEnvelope2 = FFI::MemoryPointer.new :int
+status = CryptLib.cryptCreateEnvelope(pcryptEnvelope2,CryptLib::CRYPT_UNUSED,:CRYPT_FORMAT_AUTO)
+p status
+cryptEnvelope2 = pcryptEnvelope2.get_int(0)
+
+pbytesCopied2 = FFI::MemoryPointer.new :int 
+
+status = CryptLib.cryptPushData(cryptEnvelope2,penvelopedData,300,pbytesCopied2)
+p status
+status = CryptLib.cryptSetAttributeString(cryptEnvelope2,:CRYPT_ENVINFO_PASSWORD,"123456",6)
+p status
+bytesCopied2 = pbytesCopied2.get_int(0)
+puts "bytesCopied2 = #{bytesCopied2}"
+CryptLib.cryptFlushData(cryptEnvelope2)
+
+pdecryptedData = FFI::MemoryPointer.new :char,60
+CryptLib.cryptPopData(cryptEnvelope2,pdecryptedData,60,pbytesCopied2)
+bytesCopied2 = pbytesCopied2.get_int(0)
+puts pdecryptedData.get_string(0,60)
+puts "bytesCopied2 = #{bytesCopied2}"
 CryptLib.cryptEnd()
 
