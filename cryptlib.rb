@@ -1479,7 +1479,7 @@ module CryptLib
 
 	# Macros to examine return values */
 
-	def self.cryptStatusError(status)
+	def cryptStatusError(status)
 		if status < CRYPT_OK
 			true 
 		else
@@ -1487,7 +1487,7 @@ module CryptLib
 		end
 	end
 
-	def self.cryptStatusOK(status)
+	def cryptStatusOK(status)
 		if status == CRYPT_OK
 			true
 		else
